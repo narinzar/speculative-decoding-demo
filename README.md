@@ -110,7 +110,7 @@ Measured on a single NVIDIA GeForce RTX 5090 (Laptop) with draft `distilgpt2`
 and target `gpt2-large`, at `--max-new-tokens 96 --k 4 --k-min 1 --k-max 10`,
 `temperature 1.0`, `top_p 1.0`, `seed 0`. The table below is the run for the
 documented prompt `"In a distant future, humanity"` (`outputs/bench.json`).
-This is a small-scale benchmark: a handful of short prompts, not a large sweep.
+This is a small-scale benchmark: three short prompts, not a large sweep.
 
 Expected qualitative behavior:
 
@@ -134,14 +134,17 @@ Expected qualitative behavior:
 | speculative_fixed_k=4  | 1.405    | 68.35 | 1.52x   | 0.414     | 3.92   |
 | speculative_adaptive_k | 1.487    | 64.55 | 1.43x   | 0.449     | 1.85   |
 
-Across the short prompts benchmarked (`"In a distant future, humanity"` and
-`"The history of computing began"`), fixed-k speculative decoding ran at roughly
-1.5x-1.6x the standard baseline with a mean acceptance rate near 0.40 (0.414 and
-0.379). Adaptive-k landed in the same range; on this small, low-entropy
-GPT-2 workload the acceptance rate is modest, so the residual resampling and the
-wider target pass eat into the win and the two speculative variants come out
-close. The speedup would grow on prompts where the draft agrees with the target
-more often, and further with real KV caching (see the note above).
+Across the three short prompts benchmarked (`"In a distant future, humanity"`,
+`"The history of computing began"`, and `"Scientists have recently discovered
+that"`), fixed-k speculative decoding ran at 1.19x-1.56x the standard baseline
+with a mean acceptance rate of 0.35 (0.414, 0.379, 0.269). Adaptive-k did as
+well or better on every prompt, at 1.43x-1.66x with a higher mean acceptance
+rate of 0.47 (0.449, 0.418, 0.535): when the draft started disagreeing it shrank
+k and recovered throughput, which is exactly what the controller is for. On this
+small, low-entropy GPT-2 workload the acceptance rate is modest, so the residual
+resampling and the wider target pass eat into the win. The speedup would grow on
+prompts where the draft agrees with the target more often, and further with real
+KV caching (see the note above).
 
 ## What I'd do next at larger scale
 
